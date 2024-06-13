@@ -10,6 +10,7 @@ import numpy as np
 
 print('Start...')
 
+
 tehran_timezone = pytz.timezone('Asia/Tehran')
 df_pross = pd.DataFrame(columns=['time', 'pros', 'sum_trade', 'balance'])
 df_history = pd.DataFrame(columns=['time_open', 'time'])
@@ -85,6 +86,7 @@ def trade(df_gbp, df_eur, df_eurgbp):
 
 def run():
     init()
+    print('run')
     df_gbp = get_tick_data('GBPUSD_o')
     df_eur = get_tick_data('EURUSD_o')
     df_eurgbp = get_tick_data('EURGBP_o')
