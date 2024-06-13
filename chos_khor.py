@@ -176,8 +176,8 @@ class Main:
                     return True
 
     def close_pos(self, tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two):
-        sod = 5
-        zar = -5
+        sod = 150
+        zar = -100
         level_close = 10
 
         while True:
@@ -191,64 +191,98 @@ class Main:
             if not positions_one_one or not positions_one_two or not positions_two_one or not positions_two_two:
                 return True
 
-            balance_kol = positions_one_one[0].profit + positions_one_two[0].profit + positions_two_one[0].profit + positions_two_two[0].profit
-            balance_one = positions_one_one[0].profit + positions_one_two[0].profit
-            balance_two = positions_two_one[0].profit + positions_two_two[0].profit
-
-            print(balance_kol, balance_one, balance_two)
+#           balance_kol = positions_one_one[0].profit + positions_one_two[0].profit + positions_two_one[0].profit + positions_two_two[0].profit
+            balance_one_one = positions_one_one[0].profit 
+            balance_one_two = positions_one_two[0].profit
+            balance_two_one = positions_two_one[0].profit 
+            balance_two_tow = positions_two_two[0].profit
+            
+            print( balance_one_one, balance_one_two, balance_two_one, balance_two_tow)
 
             if positions_one_one[0].volume <= 0.1: 
                 pass
 
-            if balance_kol >= 0:
-                for i in [tickit_one_one.order, tickit_one_two.order, tickit_two_one.order, tickit_two_two.order]:
-                    time.sleep(0.2)
-                    self.close(i)
-                break
+            # if balance_kol >= 0:
+            #     for i in [tickit_one_one.order, tickit_one_two.order, tickit_two_one.order, tickit_two_two.order]:
+            #         time.sleep(0.2)
+            #         self.close(i)
+            #     break
 
-            if balance_one >= sod:
+            if balance_one_one >= sod / 10:
                 self.close_(tickit_one_one.order, self.round_up(positions_one_one[0].volume / level_close, 2), level_close)
-                self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
-                
+                sod = sod - sod / 10 
                 if positions_one_two[0].volume <= 0.1:
                     break
 
                 while True:
-                    positions_two_one = mt5.positions_get(ticket=tickit_two_one.order)
-                    positions_two_two = mt5.positions_get(ticket=tickit_two_two.order)
-                    balance_two_pass = positions_two_one[0].profit + positions_two_two[0].profit
+                    positions_one_two = mt5.positions_get(ticket=tickit_one_two.order)
+                    balance_one_tow_pass = positions_one_two[0].profit 
 
-                    if balance_two_pass / level_close >= zar:
-                        self.close_(tickit_two_one.order, self.round_up(positions_two_one[0].volume / level_close, 2), level_close)
-                        self.close_(tickit_two_two.order, self.round_up(positions_two_two[0].volume / level_close, 2), level_close)
+                    if balance_one_tow_pass / level_close >= zar / 10 :
+                        self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
+
+                        zar = zar - zar / 10
                         level_close -= 1
                         break
 
-            if balance_two >= sod:
-                self.close_(tickit_two_one.order, self.round_up(positions_two_one[0].volume / level_close, 2), level_close)
-                self.close_(tickit_two_two.order, self.round_up(positions_two_two[0].volume / level_close, 2), level_close)
-                
-                if positions_two_two[0].volume <= 0.1:
+            if balance_one_two >= sod / 10:
+                self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
+                sod = sod - sod / 10
+                if positions_one_one[0].volume <= 0.1:
                     break
 
                 while True:
                     positions_one_one = mt5.positions_get(ticket=tickit_one_one.order)
-                    positions_one_two = mt5.positions_get(ticket=tickit_one_two.order)
-                    balance_one_pass = positions_one_one[0].profit + positions_one_two[0].profit
+                    balance_one_one_pass = positions_one_one[0].profit 
 
-                    if balance_one_pass / level_close >= zar:
+                    if balance_one_one_pass / level_close >= zar / 10 :
                         self.close_(tickit_one_one.order, self.round_up(positions_one_one[0].volume / level_close, 2), level_close)
-                        self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
+
+                        zar = zar - zar / 10
                         level_close -= 1
                         break
 
-    def sod_sang(self, tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two):
+            if balance_two_one >= sod / 10:
+                self.close_(tickit_two_one.order, self.round_up(positions_two_one[0].volume / level_close, 2), level_close)
+                sod = sod - sod / 10
+                if positions_two_two[0].volume <= 0.1:
+                    break
+
+                while True:
+                    positions_two_two = mt5.positions_get(ticket=tickit_two_two.order)
+                    balance_two_tow_pass = positions_two_two[0].profit 
+
+                    if balance_two_tow_pass / level_close >= zar / 10 :
+                        self.close_(tickit_two_two.order, self.round_up(positions_two_two[0].volume / level_close, 2), level_close)
+
+                        zar = zar - zar / 10
+                        level_close -= 1
+                        break
+
+            if balance_two_tow >= sod / 10:
+                self.close_(tickit_two_two.order, self.round_up(positions_two_two[0].volume / level_close, 2), level_close)
+                sod = sod - sod / 10
+                if positions_two_one[0].volume <= 0.1:
+                    break
+
+                while True:
+                    positions_two_one = mt5.positions_get(ticket=tickit_two_one.order)
+                    balance_two_one_pass = positions_two_one[0].profit 
+
+                    if balance_two_one_pass / level_close >= zar / 10 :
+                        self.close_(tickit_two_one.order, self.round_up(positions_two_one[0].volume / level_close, 2), level_close)
+
+                        zar = zar - zar / 10
+                        level_close -= 1
+                        break
+
+    def sod_sang(self, tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two ):
         init_balance_one = True
         init_balance_two = True
         pos = 'two'
         init = False
         while True:
-            time.sleep(0.3)
+            time.sleep(0.1)
             now = datetime.datetime.now(tehran_timezone)
             if 0 < now.hour < 24:
                 if init_balance_one:
@@ -258,13 +292,13 @@ class Main:
                         balance_one = positions_one_one[0].profit + positions_one_two[0].profit
                         if balance_one > 40 or balance_one < 0:
                             print(balance_one)
-                        if balance_one > 300 and init_balance_one and pos == 'two':
-                            self.close(tickit_one_one.order)
-                            time.sleep(0.1)
-                            self.close(tickit_one_two.order)
+                        if balance_one > 100 and init_balance_one and pos == 'two':
+                            # self.close(tickit_one_one.order)
+                            # time.sleep(0.1)
+                            # self.close(tickit_one_two.order)
                             init_balance_one = False
                             pos = 'one'
-                            tickit_one_one, tickit_one_two = self.run_one()
+                            # tickit_one_one, tickit_one_two = self.run_one()
                             self.close_pos(tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two)
                             break
 
@@ -275,13 +309,13 @@ class Main:
                         balance_two = positions_two_one[0].profit + positions_two_two[0].profit
                         if balance_two > 40 or balance_two < 0:
                             print(balance_two)
-                        if balance_two > 300 and init_balance_two and pos == 'two':
-                            self.close(tickit_two_one.order)
-                            time.sleep(0.1)
-                            self.close(tickit_two_two.order)
+                        if balance_two > 100 and init_balance_two and pos == 'two':
+                            # self.close(tickit_two_one.order)
+                            # time.sleep(0.1)
+                            # self.close(tickit_two_two.order)
                             init_balance_two = False
                             pos = 'one'
-                            tickit_two_one, tickit_two_two = self.run_two()
+                            # tickit_two_one, tickit_two_two = self.run_two()
                             self.close_pos(tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two)
                             break
             else:
@@ -334,14 +368,13 @@ class Main:
         if 0 < now.hour < 24:
             try:
                 if len(mt5.positions_get(symbol='GBPUSD_o')) == 0 and len(mt5.positions_get(symbol='EURUSD_o')) == 0:
-                    tickit_one_one = self.buy('GBPUSD_o', 2.6, 0, 0, 'one')
+                    tickit_one_one = self.buy('GBPUSD_o', 3, 0, 0, 'one')
                     tickit_one_two = self.sell('EURUSD_o', 3, 0, 0, 'one')
-                    tickit_two_one = self.sell('GBPUSD_o', 2.6, 0, 0, 'two')
+                    tickit_two_one = self.sell('GBPUSD_o', 3, 0, 0, 'two')
                     tickit_two_two = self.buy('EURUSD_o', 3, 0, 0, 'two')
                     return tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two
             except Exception as e:
                 print(f"Error: {e}")
-                time.sleep(60)  # Wait for 1 minute before retrying
 
     def main(self):
         while True:
@@ -350,6 +383,9 @@ class Main:
             if tickit_one_one and tickit_one_two and tickit_two_one and tickit_two_two:
                 self.sod_sang(tickit_one_one, tickit_one_two, tickit_two_one, tickit_two_two)
             time.sleep(60)
+
+
+
 
 # اجرای مثال
 if __name__ == "__main__":
