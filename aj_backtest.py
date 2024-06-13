@@ -8,6 +8,8 @@ import math
 import pytz
 import numpy as np
 
+print('Start...')
+
 tehran_timezone = pytz.timezone('Asia/Tehran')
 df_pross = pd.DataFrame(columns=['time', 'pros', 'sum_trade', 'balance'])
 df_history = pd.DataFrame(columns=['time_open', 'time'])
