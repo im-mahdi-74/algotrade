@@ -126,7 +126,10 @@ class Main:
                     print(f'Close : Error for Close {e}')
 
     def close_(self, ticket, volume, comment):
+        self.init()
         comment = str(comment)
+        
+
         volume = round(volume, 2)
         
         def close_position(position, volume, comment):
@@ -156,7 +159,6 @@ class Main:
             if position.ticket == ticket:
                 try:
                     close_position(position, volume, comment)
-                    
                 except Exception as e:
                     print(f'Close : Error for Close {e}')
 
@@ -176,87 +178,77 @@ class Main:
                     return True
 
     #  عدد های استفاده شده درون تابع به عنوان وردوی داده شود 
-    def close_pos(self, tickit_one_one, tickit_one_two):
-        sod = 250
-        zar = -100
-        level_close = 10
-
-        init_profit =  abs(mt5.positions_get(ticket=tickit_one_one.order)[0].profit) 
-        init_loss   =  - abs(mt5.positions_get(ticket=tickit_one_two.order)[0].profit)
+    def close_pos(self, ticket_one, ticket_two):
+        sod = 20
+        zar = -10
+        one_active = True
+        two_active = True
+        pos_sod = False
 
         while True:
             time.sleep(0.1)
-            
-            positions_one_one = mt5.positions_get(ticket=tickit_one_one.order)
-            positions_one_two = mt5.positions_get(ticket=tickit_one_two.order)
+            try:
+                position_one = mt5.positions_get(ticket=ticket_one.order)[0]
+                position_two = mt5.positions_get(ticket=ticket_two.order)[0]
+                print(position_one.profit, position_two.profit, sod, zar, zar * 5, position_one.volume / 10)
 
-            if not positions_one_one or not positions_one_two :
-                return True
+                if position_one.profit > sod and one_active:
+                    self.close_(ticket_one.order, position_one.volume / 10, position_one.volume / 10)
+                    sod -= sod / 10
+                    one_active = False
+                    two_active = True
+                    pos_sod = True
+                    continue
 
-#           balance_kol = positions_one_one[0].profit + positions_one_two[0].profit + positions_two_one[0].profit + positions_two_two[0].profit
-            balance_one_one = positions_one_one[0].profit 
-            balance_one_two = positions_one_two[0].profit
-            
-            print( balance_one_one, balance_one_two)
+                if position_two.profit > sod and two_active:
+                    self.close_(ticket_two.order, position_two.volume / 10, position_two.volume / 10)
+                    sod -= sod / 10
+                    two_active = False
+                    one_active = True
+                    pos_sod = True
+                    continue
 
-            if positions_one_one[0].volume <= 0.1: 
-                pass
+                # if position_one.profit < zar and pos_sod and position_one.profit < 0:
+                #     self.close_(ticket_one.order, position_one.volume / 10, position_one.volume / 10)
+                #     zar -= zar / 10
+                #     pos_sod = False
+                #     one_active = True
+                #     two_active = True
+                #     continue
 
-            # if balance_kol >= 0:
-            #     for i in [tickit_one_one.order, tickit_one_two.order, tickit_two_one.order, tickit_two_two.order]:
-            #         time.sleep(0.2)
-            #         self.close(i)
-            #     break
+                # if position_two.profit < zar and pos_sod and position_two.profit < 0:
+                #     self.close_(ticket_two.order, position_two.volume / 10, position_two.volume / 10)
+                #     zar -= zar / 10
+                #     pos_sod = False
+                #     one_active = True
+                #     two_active = True
+                #     continue
+                
+                if position_one.profit < (zar * 3) and pos_sod:
+                    print("Position One critical")
+                    self.close_(ticket_one.order, position_one.volume / 10, position_one.volume / 10)
+                    zar -= zar / 10
+                    pos_sod = False
+                    one_active = True
+                    two_active = True
+                    continue
+                
+                if position_two.profit < (zar * 3) and pos_sod:
+                    print("Position Two critical")
+                    self.close_(ticket_two.order, position_two.volume / 10, position_two.volume / 10)
+                    zar -= zar / 10
+                    pos_sod = False
+                    one_active = True
+                    two_active = True
+                    continue
 
-            if balance_one_one  >= sod / 10:
-                self.close_(tickit_one_one.order, self.round_up(positions_one_one[0].volume / level_close, 2), level_close)
-                sod = sod - sod / 10 
-                if positions_one_two[0].volume <= 0.1:
-                    break
 
-                while True:
-                    positions_one_two = mt5.positions_get(ticket=tickit_one_two.order)
-                    balance_one_tow_pass = positions_one_two[0].profit 
-                    time.sleep(0.1)
-                    print(balance_one_tow_pass)
-                    if balance_one_tow_pass  > zar / 10 :
-                        self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
+            except Exception as e:
+                print(f"Error: {e}")
+                time.sleep(1)
 
-                        zar = zar - zar / 10
-                        level_close -= 1
-                        break
 
-                    if balance_one_tow_pass <= ( zar  * 2 ) : 
-                        self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
 
-                        zar = zar - zar / 10
-                        level_close -= 1
-                        break                      
-
-            if balance_one_two  >= sod / 10:
-                self.close_(tickit_one_two.order, self.round_up(positions_one_two[0].volume / level_close, 2), level_close)
-                sod = sod - sod / 10
-                if positions_one_one[0].volume <= 0.1:
-                    break
-
-                while True:
-                    positions_one_one = mt5.positions_get(ticket=tickit_one_one.order)
-                    balance_one_one_pass = positions_one_one[0].profit 
-                    time.sleep(0.1)
-                    print(balance_one_one_pass)
-                    if balance_one_one_pass > zar / 10 :
-                        self.close_(tickit_one_one.order, self.round_up(positions_one_one[0].volume / level_close, 2), level_close)
-
-                        zar = zar - zar / 10
-                        level_close -= 1
-                        break
-
-                    if balance_one_one_pass <= ( zar  * 2 ) :
-                        self.close_(tickit_one_one.order, self.round_up(positions_one_one[0].volume / level_close, 2), level_close)
-
-                        zar = zar - zar / 10
-                        level_close -= 1
-                        break
 
 
 
@@ -336,7 +328,7 @@ class Main:
         now = datetime.datetime.now(tehran_timezone)
         if 0 < now.hour < 24:
             try:
-                if len(mt5.positions_get(symbol='GBPUSD_o')) == 0 and len(mt5.positions_get(symbol='EURUSD_o')) == 0:
+                if len(mt5.positions_get(symbol='GBPUSD_o')) == 0 :
                     tickit_one_one = self.buy('GBPUSD_o', 3, 0, 0, 'one')
                     tickit_one_twp =  self.sell('GBPUSD_o', 3, 0, 0, 'two')
                     return tickit_one_one,  tickit_one_twp
