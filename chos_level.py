@@ -224,23 +224,23 @@ class Main:
                     two_active = True
                     continue
 
-                # if position_one.profit < (zar * 3) and pos_sod:
-                #     print("Position One critical")
-                #     self.close_(ticket_one.order, position_one.volume / 10, position_one.volume / 10)
-                #     zar -= zar / 10
-                #     pos_sod = False
-                #     one_active = True
-                #     two_active = True
-                #     continue
+                if position_one.profit < (zar * 3) and pos_sod:
+                    print("Position One critical")
+                    self.close_(ticket_one.order, position_one.volume / 10, position_one.volume / 10)
+                    zar -= zar / 10
+                    pos_sod = False
+                    one_active = True
+                    two_active = True
+                    continue
 
-                # if position_two.profit < (zar * 3) and pos_sod:
-                #     print("Position Two critical")
-                #     self.close_(ticket_two.order, position_two.volume / 10, position_two.volume / 10)
-                #     zar -= zar / 10
-                #     pos_sod = False
-                #     one_active = True
-                #     two_active = True
-                #     continue
+                if position_two.profit < (zar * 3) and pos_sod:
+                    print("Position Two critical")
+                    self.close_(ticket_two.order, position_two.volume / 10, position_two.volume / 10)
+                    zar -= zar / 10
+                    pos_sod = False
+                    one_active = True
+                    two_active = True
+                    continue
 
             except Exception as e:
                 print(f"Error: {e}")
@@ -260,23 +260,23 @@ class Main:
         while True:
             time.sleep(0.1)
             now = datetime.datetime.now(tehran_timezone)
-            
-            if init_balance_one:
-                positions_one_one = mt5.positions_get(ticket=tickit_one_one.order)[0].profit 
-                positions_one_two = mt5.positions_get(ticket=tickit_one_two.order)[0].profit 
-                if positions_one_one and positions_one_two:
-                    # balance_one = positions_one_one[0].profit + positions_one_two[0].profit
-                    # if balance_one > 40 or balance_one < 0:
-                    #     print(balance_one)
-                    if positions_one_one > 0 or  positions_one_two > 0 :
-                        # self.close(tickit_one_one.order)
-                        # time.sleep(0.1)
-                        # self.close(tickit_one_two.order)
-                        init_balance_one = False
-                        pos = 'one'
-                        # tickit_one_one, tickit_one_two = self.run_one()
-                        self.close_pos(tickit_one_one, tickit_one_two)
-                        break
+            if 0 < now.hour < 24:
+                if init_balance_one:
+                    positions_one_one = mt5.positions_get(ticket=tickit_one_one.order)[0].profit 
+                    positions_one_two = mt5.positions_get(ticket=tickit_one_two.order)[0].profit 
+                    if positions_one_one and positions_one_two:
+                        # balance_one = positions_one_one[0].profit + positions_one_two[0].profit
+                        # if balance_one > 40 or balance_one < 0:
+                        #     print(balance_one)
+                        if positions_one_one > 0 or  positions_one_two > 0 :
+                            # self.close(tickit_one_one.order)
+                            # time.sleep(0.1)
+                            # self.close(tickit_one_two.order)
+                            init_balance_one = False
+                            pos = 'one'
+                            # tickit_one_one, tickit_one_two = self.run_one()
+                            self.close_pos(tickit_one_one, tickit_one_two)
+                            break
 
 
             else:
@@ -326,14 +326,14 @@ class Main:
     def run(self):
         self.init()
         now = datetime.datetime.now(tehran_timezone)
-        
-        try:
-            if len(mt5.positions_get(symbol='GBPUSD_o')) == 0 :
-                tickit_one_one = self.buy('GBPUSD_o', 3, 0, 0, 'one')
-                tickit_one_twp =  self.sell('GBPUSD_o', 3, 0, 0, 'two')
-                return tickit_one_one,  tickit_one_twp
-        except Exception as e:
-            print(f"Error: {e}")
+        if 0 < now.hour < 24:
+            try:
+                if len(mt5.positions_get(symbol='GBPUSD_o')) == 0 :
+                    tickit_one_one = self.buy('GBPUSD_o', 3, 0, 0, 'one')
+                    tickit_one_twp =  self.sell('GBPUSD_o', 3, 0, 0, 'two')
+                    return tickit_one_one,  tickit_one_twp
+            except Exception as e:
+                print(f"Error: {e}")
 
     def main(self):
         while True:
