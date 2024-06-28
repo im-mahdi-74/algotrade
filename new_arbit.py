@@ -257,7 +257,6 @@ def order_close(symbol):
                 return  True
 
 
-
 def close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
     sod = 5
     zar = -5
@@ -353,7 +352,6 @@ def close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
                     break
                     
 
-
 def sod_sang(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow):
     init_balance_one = True
     init_balance_tow = True
@@ -370,19 +368,27 @@ def sod_sang(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow):
                 positions_one_tow = mt5.positions_get(ticket=tickit_one_tow.order)
                 if positions_one_one and positions_one_tow:
                     balance_one = positions_one_one[0].profit + positions_one_tow[0].profit
-                    if balance_one > 40  or balance_one < 0 :
+                    if balance_one > 4  or balance_one < 0 :
                         print(balance_one)
-                    if balance_one > 300 and init_balance_one and pos == 'tow':
+
+                    # if balance_one > 50 and init_balance_one and pos == 'tow':
+                    #     close(tickit_tow_one.order)
+                    #     time.sleep(0.1)
+                    #     close(tickit_tow_tow.order)
+
+                    if balance_one > 25 and init_balance_one and pos == 'tow':
                         close(tickit_one_one.order)
                         time.sleep(0.1)
                         close(tickit_one_tow.order)
                         init_balance_one = False
-                        pos = 'one'
-                        tickit_one_one , tickit_one_tow = run_one()
-                        close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow)
                         break
-
                         
+
+                    if balance_one < 0  and pos == 'tow' and len(mt5.positions_get(symbol='GBPUSD_o')) == 1 and len(mt5.positions_get(symbol='EURUSD_o')) == 1:
+                        close(tickit_one_one.order)
+                        time.sleep(0.1)
+                        close(tickit_one_tow.order)
+                        break
 
 
                     # if balance_one >= 0 and not init_balance_tow and init_balance_one:
@@ -396,16 +402,26 @@ def sod_sang(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow):
                 positions_tow_tow = mt5.positions_get(ticket=tickit_tow_tow.order)
                 if positions_tow_one and positions_tow_tow:
                     balance_tow = positions_tow_one[0].profit + positions_tow_tow[0].profit
-                    if balance_tow > 40 or balance_tow < 0:
+                    if balance_tow > 4 or balance_tow < 0:
                         print(balance_tow)
-                    if balance_tow > 300 and init_balance_tow and pos == 'tow' :
+
+                    # if balance_tow > 50 and init_balance_tow and pos == 'tow' :
+                    #     close(tickit_one_one.order)
+                    #     time.sleep(0.1)
+                    #     close(tickit_one_tow.order)
+
+                    if balance_tow > 25 and init_balance_tow and pos == 'tow' :
                         close(tickit_tow_one.order)
                         time.sleep(0.1)
                         close(tickit_tow_tow.order)
                         init_balance_tow = False
-                        pos = 'one'
-                        tickit_tow_one, tickit_tow_tow = run_tow()
-                        close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow)
+                        break
+
+
+                    if balance_tow < 0 and pos == 'tow' and len(mt5.positions_get(symbol='GBPUSD_o')) == 1 and len(mt5.positions_get(symbol='EURUSD_o')) == 1:
+                        close(tickit_tow_one.order)
+                        time.sleep(0.1)
+                        close(tickit_tow_tow.order)
                         break
 
 

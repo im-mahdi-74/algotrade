@@ -22,7 +22,7 @@ def round_up(number, precision):
     return math.ceil(number * (10**precision)) / (10**precision)
 
 def init():
-    init = mt5.initialize(path=r"C:\Program Files\LiteFinance MT5 3\terminal64.exe")
+    init = mt5.initialize(path=r"C:\Program Files\LiteFinance MT5 2\terminal64.exe")
     mt5.login(89373537, password='Mahdi1400@', server='LiteFinance-MT5-Demo')
     return init
 
@@ -42,28 +42,17 @@ def symbol_info(symbol):
     return dic_symbol_info
 
 def get_tick_data(symbol):
-    utc_from = datetime(2024, 5, 3, hour=8, tzinfo=tehran_timezone)
-    utc_to = datetime(2024, 5, 6, hour=14, tzinfo=tehran_timezone)
+    utc_from = datetime(2024, 6, 20, hour=9, tzinfo=tehran_timezone)
+    utc_to = datetime(2024, 6, 20, hour=21, tzinfo=tehran_timezone)
     ticks = mt5.copy_ticks_range(symbol, utc_from, utc_to, mt5.COPY_TICKS_ALL)
     ticks_frame = pd.DataFrame(ticks)
-    ticks_frame['time'] = pd.to_datetime(ticks_frame['time'], unit='s').dt.tz_localize('UTC').dt.tz_convert(tehran_timezone)
+    ticks_frame['time'] = pd.to_datetime(ticks_frame['time_msc'] , unit= 'ms' ).dt.tz_localize('UTC').dt.tz_convert(tehran_timezone)
     ticks_frame['time'] = ticks_frame['time'].dt.tz_localize(None)
+
+
     return ticks_frame
 
-def synchronize_dataframes(df_list):
-    # ایجاد یک سری زمانی یکتا برای همه دیتافریم‌ها
-    all_times = sorted(set(df_list[0]['time']).union(*[df['time'] for df in df_list[1:]]))
-    time_df = pd.DataFrame(all_times, columns=['time'])
-    
-    # بازنمونه‌گیری و پر کردن مقادیر قیمت برای هر دیتافریم
-    synced_dfs = []
-    for df in df_list:
-        merged_df = pd.merge(time_df, df, on='time', how='left')
-        merged_df['ask'].fillna(method='ffill', inplace=True)
-        merged_df['bid'].fillna(method='ffill', inplace=True)
-        synced_dfs.append(merged_df)
-    
-    return synced_dfs
+
 
 def write_to_csv(filename, data):
     df = pd.DataFrame(data, columns=['time_gbp', 'time_eur', 'time_eurgbp', 'one', 'tow'])
@@ -74,15 +63,54 @@ def write_to_csv(filename, data):
         pass
     df.to_csv(filename, index=False)
 
+def fix_time(df_gbp, df_eur, df_eurgbp):
+    # time_gbp = df_gbp['time']
+    # time_eur = df_eur['time']
+    # time_eurgbp = df_eurgbp['time']
+    # main_time = pd.concat([time_gbp, time_eur, time_eurgbp], ignore_index=True , axis=0).sort_values().reset_index(drop=True)
+
+    df_main = pd.DataFrame()
+    df_main['time'] = pd.concat([df_gbp['time'], df_eur['time'], df_eurgbp['time']]).sort_values().reset_index(drop=True)
+    
+    # ادغام دیتافریم‌ها بر اساس ستون زمان
+    df_gbp_merged = pd.merge(df_main, df_gbp, on='time', how='left')
+    df_eur_merged = pd.merge(df_main, df_eur, on='time', how='left')
+    df_eurgbp_merged = pd.merge(df_main, df_eurgbp, on='time', how='left')
+    
+    # پر کردن سطرهای مفقود با مقادیر سطر قبلی
+    df_gbp_merged.fillna(method='ffill', inplace=True)
+    df_eur_merged.fillna(method='ffill', inplace=True)
+    df_eurgbp_merged.fillna(method='ffill', inplace=True)
+
+    # print(df_gbp_merged)
+    # print(df_eur_merged)
+    # print(df_eurgbp_merged)
+
+    return df_gbp_merged, df_eur_merged, df_eurgbp_merged
+
+
+
+
+
 def trade(df_gbp, df_eur, df_eurgbp):
     balance_one = 10000
     balance_tow = 10000
-    base_price_gbp, base_price_eur, base_price_eurgbp = df_gbp.iloc[0]['bid'], df_eur.iloc[0]['ask'], df_eurgbp.iloc[0]['ask']
+    df_gbp.fillna(method='bfill', inplace=True)
+    df_eur.fillna(method='bfill', inplace=True)
+    df_eurgbp.fillna(method='bfill', inplace=True)
+
+    base_price_gbp, base_price_eur, base_price_eurgbp = df_gbp.iloc[0]['bid'] , df_eur.iloc[0]['ask'] , df_eurgbp.iloc[0]['ask'] 
+    
     for (index_gbp, row_gbp), (index_eur, row_eur), (index_eurgbp, row_eurgbp) in zip(df_gbp.iterrows(), df_eur.iterrows(), df_eurgbp.iterrows()):
+            
+
         jam_gbp_buy_eur_sell = ((row_gbp['bid'] - base_price_gbp) * (0.85 * 100_000)) + ((base_price_eur - row_eur['ask']) * (1 * 100_000)) + ((row_eurgbp['bid'] - base_price_eurgbp) * (1 * 100_000))
-        jam_gbp_sell_eur_buy = ((base_price_gbp - row_gbp['ask']) * (0.85 * 100_000)) + ((row_eur['bid'] - base_price_eur) * (1 * 100_000)) + ((base_price_eurgbp - row_eurgbp['bid']) * (1 * 100_000))
+        jam_gbp_sell_eur_buy = ((base_price_gbp - row_gbp['ask']) * (0.85 * 100_000)) + ((row_eur['bid'] - base_price_eur) * (1 * 100_000)) + ((base_price_eurgbp - row_eurgbp['ask']) * (1 * 100_000))
         data = [[row_gbp['time'], row_eur['time'], row_eurgbp['time'], jam_gbp_buy_eur_sell, jam_gbp_sell_eur_buy]]
         write_to_csv('trade_data_arbit_one.csv', data)
+
+
+
 
 def run():
     init()
@@ -92,8 +120,16 @@ def run():
     df_eurgbp = get_tick_data('EURGBP_o')
 
     # همگام‌سازی دیتافریم‌ها
-    df_gbp, df_eur, df_eurgbp = synchronize_dataframes([df_gbp, df_eur, df_eurgbp])
 
+    df_gbp, df_eur, df_eurgbp = fix_time(df_gbp, df_eur, df_eurgbp)    
+    print(df_gbp , df_eur, df_eurgbp)
     trade(df_gbp, df_eur, df_eurgbp)
 
+
+    # df_gbp.to_csv('df_gbp_.csv', index=False)
+    # df_eur.to_csv('df_eur_.csv', index=False)
+    # df_eurgbp.to_csv('df_eurgbp.csv', index=False)
+
 run()
+
+

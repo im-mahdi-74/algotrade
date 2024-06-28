@@ -292,7 +292,7 @@ def close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
 
 
 
-
+ 
 
 
 

@@ -31,7 +31,7 @@ def round_up(number, precision):
 def init():
     # mt5.initialize(path = r"C:\Program Files\LiteFinance MT5 real\terminal64.exe")
     # mt5.login(6910350 , password= 'Mahdi1400@' , server= 'LiteFinance-MT5-Live')
-    init = mt5.initialize(path = r"C:\Program Files\LiteFinance MT5 3\terminal64.exe")
+    init = mt5.initialize(path = r"C:\Program Files\LiteFinance MT5 2\terminal64.exe")
     mt5.login(89373537 , password= 'Mahdi1400@' , server= 'LiteFinance-MT5-Demo')
     return init
 
