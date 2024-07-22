@@ -26,8 +26,8 @@ def init():
     # mt5.login(6910350 , password= 'Mahdi1400@' , server= 'LiteFinance-MT5-Live')
     # mt5.initialize(path = r"C:\Program Files\LiteFinance MT5 real 2\terminal64.exe")
     # mt5.login(6920086 , password= 'Mahdi1400@' , server= 'LiteFinance-MT5-Live')
-    mt5.initialize(path = r"C:\Program Files\LiteFinance MT5 3\terminal64.exe")
-    mt5.login(89373537 , password= 'Mahdi1400@' , server= 'LiteFinance-MT5-Demo')
+    mt5.initialize(path = r"C:\Program Files\LiteFinance MT5 1.1\terminal64.exe")
+    mt5.login(6994299 , password= '#sM8HZES4WXG' , server= 'LiteFinance-MT5-Live')
 
 def info():
 
@@ -171,7 +171,7 @@ def close(ticket):
             if result.retcode == 10009 :
                 return True
         except Exception as e:
-            print(f'Close : Eror in def close {e}')
+            print(f'Close2 : Eror in def close {e}')
 
     positions = mt5.positions_get()
     for position in positions:
@@ -257,21 +257,26 @@ def order_close(symbol):
                 return  True
 
 
-def close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
+def close_pos_power_vol(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
     
     zar = 0
     level_close = 'None'
-    level_close_one =  mt5.positions_get(ticket=tickit_one_one.order)[0].volume / 20
-    level_close_tow =  mt5.positions_get(ticket=tickit_tow_tow.order)[0].volume / 20
+    level_close_one =  mt5.positions_get(ticket=tickit_one_one.order)[0].volume / 10
+    level_close_tow =  mt5.positions_get(ticket=tickit_tow_tow.order)[0].volume / 10
+
+
 
     while True:
         time.sleep(0.05)
 
         if mt5.positions_get(ticket=tickit_one_one.order)[0].volume == 0.01 or mt5.positions_get(ticket=tickit_tow_tow.order)[0].volume == 0.01 or mt5.positions_get(ticket=tickit_one_tow.order)[0].volume == 0.01 or mt5.positions_get(ticket=tickit_tow_one.order)[0].volume == 0.01:
+            li = [tickit_one_one , tickit_one_tow  , tickit_tow_one , tickit_tow_tow]
+            for tickit in li : 
+                close(tickit)
             break
 
 
-        sod = mt5.positions_get(ticket=tickit_one_one.order)[0].volume * 40 
+        sod = mt5.positions_get(ticket=tickit_one_one.order)[0].volume * 25
         
         positions_one_one = mt5.positions_get(ticket=tickit_one_one.order)
         positions_one_tow = mt5.positions_get(ticket=tickit_one_tow.order)
@@ -336,6 +341,57 @@ def close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
                     break
                 time.sleep(0.05)
                     
+
+def close_pos(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow ):
+    
+    sod = 0.15
+    zar = 0.15
+
+    finish = False
+
+    while True:
+        time.sleep(0.01)
+
+
+
+
+        if mt5.positions_get(ticket=tickit_one_one.order)[0].profit + mt5.positions_get(ticket=tickit_one_tow.order)[0].profit >= sod :
+            
+            doit = close( tickit_one_one.order)
+            doit = close( tickit_one_tow.order )
+             
+            while True:
+
+                if mt5.positions_get(ticket=tickit_tow_one.order)[0].profit + mt5.positions_get(ticket=tickit_tow_tow.order)[0].profit  >= zar:
+                    
+                    
+                    doit = close( tickit_tow_one.order)
+                    doit = close(tickit_tow_tow.order)
+                    finish = True
+                    break
+
+            if finish :
+                break
+
+
+        if mt5.positions_get(ticket=tickit_tow_one.order)[0].profit + mt5.positions_get(ticket=tickit_tow_tow.order)[0].profit >= sod :
+            
+            doit = close( tickit_tow_one.order)
+            doit = close( tickit_tow_tow.order)
+             
+            while True:
+
+                if mt5.positions_get(ticket=tickit_one_one.order)[0].profit + mt5.positions_get(ticket=tickit_one_tow.order)[0].profit >= zar :
+                    
+                    doit = close( tickit_one_one.order )
+                    doit = close( tickit_one_tow.order )
+                    finish = True
+                    break
+
+            if finish : 
+                break
+
+
 
 def sod_sang(tickit_one_one, tickit_one_tow, tickit_tow_one, tickit_tow_tow):
 
@@ -402,16 +458,15 @@ def run():
 
     
     now = datetime.datetime.now(tehran_timezone)
-    if 0 < now.hour < 24   :
+    if 4 < now.hour < 22  and len(mt5.positions_get()) < 96 :
         try:
 
-            if len(mt5.positions_get(symbol='GBPUSD_o')) < 12 :
-                tickit_one_one =  buy('GBPUSD_o', 1.2 , 0 , 0 , 'one')
-                tickit_one_tow =  sell('EURUSD_o', 1 , 0 , 0 , 'one')
-                tickit_tow_one =  sell('GBPUSD_o', 1.2 , 0 , 0 , 'tow')
-                tickit_tow_tow =  buy('EURUSD_o', 1 , 0 , 0 , 'tow')
+            tickit_one_one =  buy('GBPUSD_o', 0.01 , 0 , 0 , 'one')
+            tickit_one_tow =  sell('EURUSD_o', 0.01 , 0 , 0 , 'one')
+            tickit_tow_one =  sell('GBPUSD_o', 0.01 , 0 , 0 , 'tow')
+            tickit_tow_tow =  buy('EURUSD_o', 0.01 ,  0 , 0 , 'tow')
 
-                return tickit_one_one , tickit_one_tow , tickit_tow_one , tickit_tow_tow
+            return tickit_one_one , tickit_one_tow , tickit_tow_one , tickit_tow_tow
                 
                 
             # else:
@@ -432,7 +487,7 @@ def run():
             print(f"Error: {e}")
             time.sleep(60)  # Wait for 1 minute before retrying
 
-        
+
 
 
 def main():
@@ -446,7 +501,7 @@ def main():
             
 
             sod_sang(tickit_one_one , tickit_one_tow , tickit_tow_one , tickit_tow_tow)
-        time.sleep(900)
+        time.sleep(300)
 
 
 main()

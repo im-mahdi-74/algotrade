@@ -22,8 +22,8 @@ def round_up(number, precision):
     return math.ceil(number * (10**precision)) / (10**precision)
 
 def init():
-    init = mt5.initialize(path=r"C:\Program Files\LiteFinance MT5 2\terminal64.exe")
-    mt5.login(89373537, password='Mahdi1400@', server='LiteFinance-MT5-Demo')
+    init = mt5.initialize(path=r"C:\Program Files\Propridge Capital Markets MT5 Terminal\terminal64.exe")
+    mt5.login(149613, password='@Dtj$67F' ,  server='PropridgeCapitalMarkets-Server')
     return init
 
 def info():
@@ -84,22 +84,22 @@ def fix_time(df_gbp, df_eur, df_eurgbp):
 def trade(df_gbp, df_eur, df_eurgbp):
     balance_one = 10000
     balance_tow = 10000
-    df_gbp.fillna(method='bfill', inplace=True)
-    df_eur.fillna(method='bfill', inplace=True)
-    df_eurgbp.fillna(method='bfill', inplace=True)
+    # df_gbp.fillna(method='ffill', inplace=True)
+    # df_eur.fillna(method='ffill', inplace=True)
+    # df_eurgbp.fillna(method='ffill', inplace=True)
 
     base_price_gbp = df_gbp.iloc[0]['bid']
     base_price_eur = df_eur.iloc[0]['ask']
     base_price_eurgbp = df_eurgbp.iloc[0]['ask']
 
     # برداری کردن محاسبات
-    jam_gbp_buy_eur_sell = ((df_gbp['bid'] - base_price_gbp) * (0.85 * 100_000)) + \
-                           ((base_price_eur - df_eur['ask']) * (1 * 100_000)) + \
-                           ((df_eurgbp['bid'] - base_price_eurgbp) * (1 * 100_000))
+    jam_gbp_buy_eur_sell = ((df_gbp['ask'] - base_price_gbp) * (0.85 * 100_000)) + \
+                           ((base_price_eur - df_eur['bid']) * (1 * 100_000)) + \
+                           ((df_eurgbp['ask'] - base_price_eurgbp) * (1 * 100_000))
     
-    jam_gbp_sell_eur_buy = ((base_price_gbp - df_gbp['ask']) * (0.85 * 100_000)) + \
-                           ((df_eur['bid'] - base_price_eur) * (1 * 100_000)) + \
-                           ((base_price_eurgbp - df_eurgbp['ask']) * (1 * 100_000))
+    jam_gbp_sell_eur_buy = ((base_price_gbp - df_gbp['bid']) * (0.85 * 100_000)) + \
+                           ((df_eur['ask'] - base_price_eur) * (1 * 100_000)) + \
+                           ((base_price_eurgbp - df_eurgbp['bid']) * (1 * 100_000))
 
     # ایجاد دیتافریم برای ذخیره نتایج
     result_df = pd.DataFrame({
@@ -111,7 +111,7 @@ def trade(df_gbp, df_eur, df_eurgbp):
     })
 
     # ذخیره نتایج در فایل CSV
-    write_to_csv('trade_data_arbit.csv', result_df.values)
+    write_to_csv('triangular_one.csv', result_df.values)
 
 def write_to_csv(filename, data):
     df = pd.DataFrame(data, columns=['time_gbp', 'time_eur', 'time_eurgbp', 'one', 'tow'])
@@ -129,9 +129,9 @@ def write_to_csv(filename, data):
 def run():
     init()
     print('run')
-    df_gbp = get_tick_data('GBPUSD_o')
-    df_eur = get_tick_data('EURUSD_o')
-    df_eurgbp = get_tick_data('EURGBP_o')
+    df_gbp = get_tick_data('GBPUSD')
+    df_eur = get_tick_data('EURUSD')
+    df_eurgbp = get_tick_data('EURGBP')
 
     # همگام‌سازی دیتافریم‌ها
 
